@@ -95,7 +95,33 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     context.Database.EnsureCreated();
-    // TODO: Add seed logic here
+    
+    if (!context.Users.Any())
+    {
+        // Seed default system categories
+        var categories = new List<Category>
+        {
+            new Category { Name = "Groceries", Icon = "bi-cart" },
+            new Category { Name = "Rent", Icon = "bi-house" },
+            new Category { Name = "Utilities", Icon = "bi-lightning" },
+            new Category { Name = "Entertainment", Icon = "bi-mask" },
+            new Category { Name = "Income", Icon = "bi-cash-coin" }
+        };
+        context.Categories.AddRange(categories);
+
+        // Seed Admin User
+        WealthWise.Api.Helpers.PasswordHelper.CreatePasswordHash("Admin123", out byte[] hash, out byte[] salt);
+        var admin = new User
+        {
+            FullName = "Admin User",
+            Email = "admin@wealthwise.com",
+            PasswordHash = hash,
+            PasswordSalt = salt
+        };
+        context.Users.Add(admin);
+        
+        context.SaveChanges();
+    }
 }
 
 app.Run();
